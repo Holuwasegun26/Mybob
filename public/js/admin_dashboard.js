@@ -876,6 +876,7 @@ if (saveHistoryEditBtn) {
         });
     });
 }
+
     function deleteHistoryEvent(trackingMongoId, historyId) {
         fetch(`/api/admin/trackings/${trackingMongoId}/history/${historyId}`, {
             method: 'DELETE',

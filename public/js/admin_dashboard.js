@@ -753,11 +753,12 @@ function fetchTrackingHistory(trackingId) { // Renamed parameter from mongoId to
             e.preventDefault();
             const trackingMongoId = updateTrackingMongoId.value; // Get the ID of the currently selected tracking
 
-            const newHistoryEvent = {
-                timestamp: new Date(`${document.getElementById('newHistoryDate').value}T${document.getElementById('newHistoryTime').value}`).toISOString(),
-                location: document.getElementById('newHistoryLocation').value,
-                description: document.getElementById('newHistoryDescription').value
-            };
+        const newHistoryEvent = {
+    date: document.getElementById('newHistoryDate').value,
+    time: document.getElementById('newHistoryTime').value,
+    location: document.getElementById('newHistoryLocation').value,
+    description: document.getElementById('newHistoryDescription').value
+};
 
             fetch(`/api/admin/trackings/${trackingMongoId}/history`, {
                 method: 'POST',

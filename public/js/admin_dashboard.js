@@ -798,7 +798,8 @@ function fetchTrackingHistory(trackingId) { // Renamed parameter from mongoId to
         });
     }
 
-   if (saveHistoryEditBtn) {
+    // --- Fix for the Invalid Date Error ---
+if (saveHistoryEditBtn) {
     saveHistoryEditBtn.addEventListener('click', function() {
         const trackingMongoId = editHistoryModalTrackingMongoId.value;
         const historyId = editHistoryModalHistoryId.value;
@@ -808,7 +809,6 @@ function fetchTrackingHistory(trackingId) { // Renamed parameter from mongoId to
         const timepickerInstance = M.Timepicker.getInstance(editHistoryTime);
 
         let isoTimestamp = '';
-
         if (datepickerInstance && datepickerInstance.date && timepickerInstance && timepickerInstance.time) {
             // Get the date object from the datepicker
             const date = datepickerInstance.date;
@@ -851,7 +851,13 @@ function fetchTrackingHistory(trackingId) { // Renamed parameter from mongoId to
         })
         .then(response => {
             if (!response.ok) {
-                // ... (error handling code remains the same)
+                if (response.status === 401 || response.status === 403) {
+                    M.toast({ html: 'Session expired or unauthorized. Please log in again.', classes: 'red darken-2' });
+                    setTimeout(() => window.location.href = 'admin_login.html', 2000);
+                }
+                return response.json().then(errorData => {
+                    throw new Error(errorData.message || 'Server error updating history event');
+                });
             }
             return response.json();
         })
@@ -870,7 +876,6 @@ function fetchTrackingHistory(trackingId) { // Renamed parameter from mongoId to
         });
     });
 }
-
     function deleteHistoryEvent(trackingMongoId, historyId) {
         fetch(`/api/admin/trackings/${trackingMongoId}/history/${historyId}`, {
             method: 'DELETE',

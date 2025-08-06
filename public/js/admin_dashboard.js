@@ -748,76 +748,29 @@ function fetchTrackingHistory(trackingId) { // Renamed parameter from mongoId to
         });
     }
 
-    if (addHistoryForm) {
-        addHistoryForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const trackingMongoId = updateTrackingMongoId.value; // Get the ID of the currently selected tracking
 
-            const newHistoryEvent = {
-                timestamp: new Date(`${document.getElementById('newHistoryDate').value}T${document.getElementById('newHistoryTime').value}`).toISOString(),
-                location: document.getElementById('newHistoryLocation').value,
-                description: document.getElementById('newHistoryDescription').value
-            };
+   // Add New History Event Form Submission
+if (addHistoryForm) {
+    addHistoryForm.addEventListener('submit', function(event) {
+        event.preventDefault();
 
-            fetch(`/api/admin/trackings/${trackingMongoId}/history`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                },
-                body: JSON.stringify(newHistoryEvent)
-            })
-            .then(response => {
-                if (!response.ok) {
-                    if (response.status === 401 || response.status === 403) {
-                        M.toast({ html: 'Session expired or unauthorized. Please log in again.', classes: 'red darken-2' });
-                        setTimeout(() => window.location.href = 'admin_login.html', 2000);
-                    }
-                    return response.json().then(errorData => {
-                        throw new Error(errorData.message || 'Server error adding history event');
-                    });
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.success) {
-                    M.toast({ html: 'History event added successfully!', classes: 'green darken-2' });
-                    addHistoryForm.reset();
-                    M.updateTextFields();
-                    M.Datepicker.init(document.getElementById('newHistoryDate'));
-                    M.Timepicker.init(document.getElementById('newHistoryTime'));
-                    fetchTrackingHistory(trackingMongoId); // Refresh history list
-                } else {
-                    M.toast({ html: `Error: ${data.message || 'Could not add history event.'}`, classes: 'red darken-2' });
-                }
-            })
-            .catch(error => {
-                console.error('Error adding history event:', error);
-                M.toast({ html: `Network error or server issue: ${error.message}`, classes: 'red darken-2' });
-            });
-        });
-    }
-
-   if (saveHistoryEditBtn) {
-    saveHistoryEditBtn.addEventListener('click', function() {
-        const trackingMongoId = editHistoryModalTrackingMongoId.value;
-        const historyId = editHistoryModalHistoryId.value;
+        const trackingMongoId = document.getElementById('historyTrackingIdInput').value;
 
         // Get the Materialize Datepicker and Timepicker instances
-        const datepickerInstance = M.Datepicker.getInstance(editHistoryDate);
-        const timepickerInstance = M.Timepicker.getInstance(editHistoryTime);
+        const datepickerInstance = M.Datepicker.getInstance(document.getElementById('newHistoryDate'));
+        const timepickerInstance = M.Timepicker.getInstance(document.getElementById('newHistoryTime'));
+        const newHistoryLocation = document.getElementById('newHistoryLocation').value;
+        const newHistoryDescription = document.getElementById('newHistoryDescription').value;
 
         let isoTimestamp = '';
 
-        if (datepickerInstance && datepickerInstance.date && timepickerInstance && timepickerInstance.time) {
-            // Get the date object from the datepicker
+        // Validate that the pickers have values and create a timestamp
+        if (datepickerInstance.date && timepickerInstance.time) {
             const date = datepickerInstance.date;
             
-            // Get the time value and parse it
             const [time, period] = timepickerInstance.time.split(' ');
             let [hours, minutes] = time.split(':').map(Number);
             
-            // Convert to 24-hour format
             if (period === 'PM' && hours < 12) {
                 hours += 12;
             }
@@ -825,84 +778,57 @@ function fetchTrackingHistory(trackingId) { // Renamed parameter from mongoId to
                 hours = 0;
             }
 
-            // Set the hours and minutes on the date object
             date.setHours(hours, minutes, 0, 0);
 
-            // Format the final ISO string
             isoTimestamp = date.toISOString();
         } else {
             M.toast({ html: 'Please select a valid date and time.', classes: 'red darken-2' });
-            return; // Stop execution if date/time is invalid or missing
+            return;
         }
 
-        const updatedHistoryEvent = {
+        // Validate other fields
+        if (!newHistoryLocation || !newHistoryDescription) {
+            M.toast({ html: 'Location and Description are required.', classes: 'red darken-2' });
+            return;
+        }
+
+        const newHistoryEvent = {
             timestamp: isoTimestamp,
-            location: editHistoryLocation.value,
-            description: editHistoryDescription.value
+            location: newHistoryLocation,
+            description: newHistoryDescription
         };
 
-        fetch(`/api/admin/trackings/${trackingMongoId}/history/${historyId}`, {
-            method: 'PUT',
+        fetch(`/api/admin/trackings/${trackingMongoId}/history`, {
+            method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${localStorage.getItem('token')}`
             },
-            body: JSON.stringify(updatedHistoryEvent)
+            body: JSON.stringify(newHistoryEvent)
         })
         .then(response => {
             if (!response.ok) {
-                // ... (error handling code remains the same)
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.success) {
-                M.toast({ html: 'History event updated successfully!', classes: 'green darken-2' });
-                M.Modal.getInstance(editHistoryModal).close();
-                fetchTrackingHistory(trackingMongoId); // Refresh history list
-            } else {
-                M.toast({ html: `Error: ${data.message || 'Could not update history event.'}`, classes: 'red darken-2' });
-            }
-        })
-        .catch(error => {
-            console.error('Error updating history event:', error);
-            M.toast({ html: `Network error or server issue: ${error.message}`, classes: 'red darken-2' });
-        });
-    });
-}
-
-    function deleteHistoryEvent(trackingMongoId, historyId) {
-        fetch(`/api/admin/trackings/${trackingMongoId}/history/${historyId}`, {
-            method: 'DELETE',
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
-            }
-        })
-        .then(response => {
-            if (!response.ok) {
-                if (response.status === 401 || response.status === 403) {
-                    M.toast({ html: 'Session expired or unauthorized. Please log in again.', classes: 'red darken-2' });
-                    setTimeout(() => window.location.href = 'admin_login.html', 2000);
-                }
                 return response.json().then(errorData => {
-                    throw new Error(errorData.message || 'Server error deleting history event');
+                    throw new Error(errorData.message || 'Failed to add history event.');
                 });
             }
             return response.json();
         })
         .then(data => {
             if (data.success) {
-                M.toast({ html: 'History event deleted successfully!', classes: 'red darken-2' });
-                fetchTrackingHistory(trackingMongoId); // Refresh history list
+                M.toast({ html: 'History event added successfully!', classes: 'green darken-2' });
+                addHistoryForm.reset(); // Reset form fields
+                fetchTrackingHistory(trackingMongoId); // Refresh the history list
             } else {
-                M.toast({ html: `Error: ${data.message || 'Could not delete history event.'}`, classes: 'red darken-2' });
+                M.toast({ html: `Error: ${data.message || 'Could not add history event.'}`, classes: 'red darken-2' });
             }
         })
         .catch(error => {
-            console.error('Error deleting history event:', error);
-            M.toast({ html: `Network error or server issue: ${error.message}`, classes: 'red darken-2' });
+            console.error('Error adding history event:', error);
+            M.toast({ html: `Error adding history event: ${error.message}`, classes: 'red darken-2' });
         });
-    }
+    });
+}
 
 
    // --- Send Email Notification ---

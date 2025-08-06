@@ -472,16 +472,12 @@ app.post('/api/admin/trackings/:id/history', authenticateAdmin, async (req, res)
         }
     }
 
-    // --- CHANGE STARTS HERE ---
-    // Destructure `timestamp` instead of `date` and `time`
-    const { timestamp, location, description } = bodyData;
+    const { date, time, location, description } = bodyData;
 
-    // Validate `timestamp` directly
-    if (!timestamp || timestamp.trim() === '' || !location || location.trim() === '' || !description || description.trim() === '') {
+    if (!date || date.trim() === '' || !time || time.trim() === '' || !location || location.trim() === '' || !description || description.trim() === '') {
         console.log('Backend: Validation FAILED - One or more required history fields are missing or empty.');
-        return res.status(400).json({ message: 'Timestamp, Location, and Description are required to add a new history event.' });
+        return res.status(400).json({ message: 'Date, Time, Location, and Description are required to add a new history event.' });
     }
-    // --- CHANGE ENDS HERE ---
 
     try {
         const { id } = req.params;
@@ -492,16 +488,32 @@ app.post('/api/admin/trackings/:id/history', authenticateAdmin, async (req, res)
             return res.status(404).json({ message: 'Tracking record not found.' });
         }
 
-        // Use the `timestamp` directly, as it's already an ISO string
-        let eventTimestamp = new Date(timestamp); 
+        let eventTimestamp;
+        const parsedTime = parseTimeWithAmPm(time);
 
-        if (isNaN(eventTimestamp.getTime())) {
-            console.warn(`Backend: Could not parse combined history date/time. Resulting timestamp is NaN. Timestamp: ${timestamp}`);
-            return res.status(400).json({ message: 'Invalid timestamp format provided for history event.' });
+        console.log('Backend: Raw time string for parsing:', time);
+        console.log('Backend: Result of parseTimeWithAmPm:', parsedTime);
+
+        if (parsedTime) {
+            eventTimestamp = new Date(Date.UTC(
+                new Date(date).getUTCFullYear(),
+                new Date(date).getUTCMonth(),
+                new Date(date).getUTCDate(),
+                parsedTime.hour,
+                parsedTime.minute
+            ));
+
+            if (isNaN(eventTimestamp.getTime())) {
+                console.warn(`Backend: Could not parse combined history date/time. Resulting timestamp is NaN. Date: ${date}, Time: ${time}`);
+                return res.status(400).json({ message: 'Invalid date or time format provided for history event.' });
+            }
+        } else {
+            console.warn(`Backend: Invalid time format for history event: "${time}". parseTimeWithAmPm returned null.`);
+            return res.status(400).json({ message: 'Invalid time format for history event. Expected HH:MM or HH:MM AM/PM.' });
         }
 
         const newHistoryEvent = {
-            timestamp: eventTimestamp, // Use the parsed Date object
+            timestamp: eventTimestamp,
             location: location,
             description: description
         };
@@ -525,6 +537,7 @@ app.post('/api/admin/trackings/:id/history', authenticateAdmin, async (req, res)
         res.status(500).json({ message: 'Server error while adding history event.', error: error.message });
     }
 });
+
 
 // Edit a specific history event
 app.put('/api/admin/trackings/:id/history/:historyId', authenticateAdmin, async (req, res) => {

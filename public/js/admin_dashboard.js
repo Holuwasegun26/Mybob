@@ -751,7 +751,7 @@ function fetchTrackingHistory(trackingId) { // Renamed parameter from mongoId to
     if (addHistoryForm) {
         addHistoryForm.addEventListener('submit', function(e) {
             e.preventDefault();
-            const trackingMongoId = updateTrackingMongoId.value; // Get the ID of the currently selected tracking
+        const trackingMongoId = document.getElementById('historyTrackingIdInput').value;
 
         const newHistoryEvent = {
     date: document.getElementById('newHistoryDate').value,

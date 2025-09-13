@@ -1057,9 +1057,14 @@ if (tracking && tracking.history && tracking.history.length > 0) {
 const dynamicExpectedDelivery = tracking && tracking.expectedDelivery
     ? new Date(tracking.expectedDelivery).toLocaleDateString()
     : 'N/A';
+<<<<<<< HEAD
  
 const yourWebsiteBaseUrl = process.env.FRONTEND_URL || 'https://shipxservice.netlify.app/';      
 
+=======
+
+const yourWebsiteBaseUrl = process.env.FRONTEND_URL || 'https://xdeliveryservices.netlify.app/';
+>>>>>>> a1a328676233d6a1e5f18f32240a89df19b48a09
 
 // --- FIXED LOGO IMAGE URL ---
 const logoImageUrl = 'https://i.imgur.com/nShHzww.png'; // Direct link to the image

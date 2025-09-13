@@ -1059,7 +1059,6 @@ const dynamicExpectedDelivery = tracking && tracking.expectedDelivery
     : 'N/A';
 
  const yourWebsiteBaseUrl = process.env.FRONTEND_URL || 'https://shipxservice.netlify.app/';      
-
 // --- FIXED LOGO IMAGE URL ---
 const logoImageUrl = 'https://i.imgur.com/nShHzww.png'; // Direct link to the image
 

@@ -160,132 +160,181 @@
             }
         }
 
-        function populateTrackingData(data) {
-            if (!data || typeof data !== 'object') {
-                console.error('populateTrackingData received invalid or empty data:', data);
-                return;
-            }
+       function populateTrackingData(data) {
+    if (!data || typeof data !== 'object') {
+        console.error('populateTrackingData received invalid or empty data:', data);
+        return;
+    }
 
-            document.getElementById('trackingDetailsHeader').textContent = `Tracking Details : ${data.trackingId || 'N/A'}`;
+    document.getElementById('trackingDetailsHeader').textContent = `Tracking Details : ${data.trackingId || 'N/A'}`;
 
-            const statusLine = document.getElementById('statusLine');
-            const statusDot = document.getElementById('statusIndicatorDot');
-            const currentStatusElem = document.getElementById('currentStatus');
+    const statusLine = document.getElementById('statusLine');
+    const statusDot = document.getElementById('statusIndicatorDot');
+    const currentStatusElem = document.getElementById('currentStatus');
 
-            statusLine.style.backgroundColor = data.statusLineColor || '#2196F3';
-            statusDot.style.backgroundColor = data.blinkingDotColor || '#FFFFFF';
+    if (statusLine) {
+        statusLine.style.backgroundColor = data.statusLineColor || '#2196F3';
+        const statusLineHex = (data.statusLineColor || '2196F3').replace('#', '');
+        const rLine = parseInt(statusLineHex.substring(0, 2), 16);
+        const gLine = parseInt(statusLineHex.substring(2, 4), 16);
+        const bLine = parseInt(statusLineHex.substring(4, 6), 16);
+        const brightnessLine = ((rLine * 299) + (gLine * 587) + (bLine * 114)) / 1000;
+        statusLine.style.color = (brightnessLine > 180) ? '#333' : '#fff';
+    }
 
-            const statusLineHex = (data.statusLineColor || '2196F3').replace('#', '');
-            const rLine = parseInt(statusLineHex.substring(0, 2), 16);
-            const gLine = parseInt(statusLineHex.substring(2, 4), 16);
-            const bLine = parseInt(statusLineHex.substring(4, 6), 16);
-            const brightnessLine = ((rLine * 299) + (gLine * 587) + (bLine * 114)) / 1000;
-            statusLine.style.color = (brightnessLine > 180) ? '#333' : '#fff';
-
-            const dotHex = (data.blinkingDotColor || 'FFFFFF').replace('#', '');
-            const rDot = parseInt(dotHex.substring(0, 2), 16);
-            const gDot = parseInt(dotHex.substring(2, 4), 16);
-            const bDot = parseInt(dotHex.substring(4, 6), 16);
-            const brightnessDot = ((rDot * 299) + (gDot * 587) + (bDot * 114)) / 1000;
-            statusDot.style.borderColor = (brightnessDot > 180) ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)';
-
-            currentStatusElem.textContent = data.status || 'Unknown Status';
-
-            if (data.isBlinking) {
-                statusDot.classList.add('blinking');
-            } else {
-                statusDot.classList.remove('blinking');
-            }
-
-            const expectedDeliveryDateElem = document.getElementById('expectedDeliveryDate');
-            const expectedDeliveryTimeElem = document.getElementById('expectedDeliveryTime');
-
-            if (data.expectedDelivery) {
-                const deliveryDate = new Date(data.expectedDelivery);
-                expectedDeliveryDateElem.textContent = deliveryDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-                const utcHours = String(deliveryDate.getUTCHours()).padStart(2, '0');
-                const utcMinutes = String(deliveryDate.getUTCMinutes()).padStart(2, '0');
-                expectedDeliveryTimeElem.textContent = `${utcHours}:${utcMinutes}`;
-            } else {
-                expectedDeliveryDateElem.textContent = 'N/A';
-                expectedDeliveryTimeElem.textContent = 'N/A';
-            }
-
-            document.getElementById('senderName').textContent = data.senderName || 'N/A';
-            document.getElementById('originLocation').textContent = data.origin || 'N/A';
-            document.getElementById('destination').textContent = data.destination || 'N/A';
-            document.getElementById('packageContents').textContent = data.packageContents || 'N/A';
-            document.getElementById('packageWeight').textContent = data.weight ? `${data.weight} KG` : 'N/A';
-            document.getElementById('serviceType').textContent = data.serviceType || 'N/A';
-            document.getElementById('specialHandling').textContent = data.specialHandling || 'None';
-            document.getElementById('recipientName').textContent = data.recipientName || 'N/A';
-            document.getElementById('recipientAddress').textContent = data.recipientAddress || 'N/A';
-
-            const historyContainer = document.getElementById('deliveryHistoryContainer');
-            historyContainer.innerHTML = '';
-
-            if (data.history && Array.isArray(data.history) && data.history.length > 0) {
-                data.history.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-                data.history.forEach((item, index) => {
-                    const historyItemDiv = document.createElement('div');
-                    historyItemDiv.className = 'history-item flex items-start mb-4 relative';
-                    if (index < data.history.length - 1) {
-                        historyItemDiv.classList.add('after:content-[""]', 'after:absolute', 'after:left-[11px]', 'after:top-6', 'after:bottom-[-20px]', 'after:w-0.5', 'after:bg-gray-300', 'after:z-0');
-                    }
-
-                    const iconSpan = document.createElement('span');
-                    iconSpan.className = 'history-icon-circle w-6 h-6 rounded-full text-white flex justify-center items-center text-sm flex-shrink-0 z-10';
-
-                    let iconClass = 'bg-gray-500';
-                    let iconHTML = '<i class="fas fa-circle"></i>';
-
-                    const lowerDescription = (item.description || '').toLowerCase();
-                    if (lowerDescription.includes('departed') || lowerDescription.includes('transit')) {
-                        iconClass = 'bg-blue-500';
-                        iconHTML = '<i class="fas fa-truck"></i>';
-                    } else if (lowerDescription.includes('delivered')) {
-                        iconClass = 'bg-green-500';
-                        iconHTML = '<i class="fas fa-check"></i>';
-                    } else if (lowerDescription.includes('held') || lowerDescription.includes('officer') || lowerDescription.includes('exception')) {
-                        iconClass = 'bg-red-500';
-                        iconHTML = '<i class="fas fa-exclamation-triangle"></i>';
-                    } else if (index === 0) {
-                        iconClass = 'bg-green-500';
-                        iconHTML = '<i class="fas fa-map-marker-alt"></i>';
-                    }
-
-                    iconSpan.classList.add(iconClass);
-                    iconSpan.innerHTML = iconHTML;
-
-                    const contentDiv = document.createElement('div');
-                    contentDiv.className = 'history-content ml-3 flex-grow';
-
-                    const timeP = document.createElement('p');
-                    timeP.className = 'history-time text-xs text-gray-500 mb-0.5';
-                    timeP.textContent = formatHistoryDateTimeScreenshot(item.timestamp || new Date().toISOString());
-
-                    const locationP = document.createElement('p');
-                    locationP.className = 'history-location font-semibold text-sm text-black mb-1';
-                    locationP.textContent = item.description || 'N/A';
-
-                    const descriptionP = document.createElement('p');
-                    descriptionP.className = 'history-description-detailed text-sm text-gray-700';
-                    descriptionP.textContent = item.location || 'N/A';
-
-                    contentDiv.appendChild(timeP);
-                    contentDiv.appendChild(locationP);
-                    contentDiv.appendChild(descriptionP);
-
-                    historyItemDiv.appendChild(iconSpan);
-                    historyItemDiv.appendChild(contentDiv);
-
-                    historyContainer.appendChild(historyItemDiv);
-                });
-            } else {
-                historyContainer.innerHTML = '<p class="text-center text-gray-500">No history events available yet.</p>';
-            }
+    if (statusDot) {
+        statusDot.style.backgroundColor = data.blinkingDotColor || '#FFFFFF';
+        const dotHex = (data.blinkingDotColor || 'FFFFFF').replace('#', '');
+        const rDot = parseInt(dotHex.substring(0, 2), 16);
+        const gDot = parseInt(dotHex.substring(2, 4), 16);
+        const bDot = parseInt(dotHex.substring(4, 6), 16);
+        const brightnessDot = ((rDot * 299) + (gDot * 587) + (bDot * 114)) / 1000;
+        statusDot.style.borderColor = (brightnessDot > 180) ? 'rgba(0, 0, 0, 0.2)' : 'rgba(255, 255, 255, 0.2)';
+    
+        if (data.isBlinking) {
+            statusDot.classList.add('blinking');
+        } else {
+            statusDot.classList.remove('blinking');
         }
+    }
 
+    if (currentStatusElem) {
+        currentStatusElem.textContent = data.status || 'Unknown Status';
+    }
+
+    const expectedDeliveryDateElem = document.getElementById('expectedDeliveryDate');
+    const expectedDeliveryTimeElem = document.getElementById('expectedDeliveryTime');
+
+    if (data.expectedDelivery) {
+        const deliveryDate = new Date(data.expectedDelivery);
+        if (expectedDeliveryDateElem) {
+            expectedDeliveryDateElem.textContent = deliveryDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        }
+        const utcHours = String(deliveryDate.getUTCHours()).padStart(2, '0');
+        const utcMinutes = String(deliveryDate.getUTCMinutes()).padStart(2, '0');
+        if (expectedDeliveryTimeElem) {
+            expectedDeliveryTimeElem.textContent = `${utcHours}:${utcMinutes}`;
+        }
+    } else {
+        if (expectedDeliveryDateElem) {
+            expectedDeliveryDateElem.textContent = 'N/A';
+        }
+        if (expectedDeliveryTimeElem) {
+            expectedDeliveryTimeElem.textContent = 'N/A';
+        }
+    }
+
+    // Wrap remaining document.getElementById calls in checks
+    const senderNameElem = document.getElementById('senderName');
+    if (senderNameElem) {
+        senderNameElem.textContent = data.senderName || 'N/A';
+    }
+
+    const originLocationElem = document.getElementById('originLocation');
+    if (originLocationElem) {
+        originLocationElem.textContent = data.origin || 'N/A';
+    }
+
+    const destinationElem = document.getElementById('destination');
+    if (destinationElem) {
+        destinationElem.textContent = data.destination || 'N/A';
+    }
+
+    const packageContentsElem = document.getElementById('packageContents');
+    if (packageContentsElem) {
+        packageContentsElem.textContent = data.packageContents || 'N/A';
+    }
+
+    const packageWeightElem = document.getElementById('packageWeight');
+    if (packageWeightElem) {
+        packageWeightElem.textContent = data.weight ? `${data.weight} KG` : 'N/A';
+    }
+
+    const serviceTypeElem = document.getElementById('serviceType');
+    if (serviceTypeElem) {
+        serviceTypeElem.textContent = data.serviceType || 'N/A';
+    }
+
+    const specialHandlingElem = document.getElementById('specialHandling');
+    if (specialHandlingElem) {
+        specialHandlingElem.textContent = data.specialHandling || 'None';
+    }
+
+    const recipientNameElem = document.getElementById('recipientName');
+    if (recipientNameElem) {
+        recipientNameElem.textContent = data.recipientName || 'N/A';
+    }
+
+    const recipientAddressElem = document.getElementById('recipientAddress');
+    if (recipientAddressElem) {
+        recipientAddressElem.textContent = data.recipientAddress || 'N/A';
+    }
+
+    const historyContainer = document.getElementById('deliveryHistoryContainer');
+    if (historyContainer) {
+        historyContainer.innerHTML = '';
+        if (data.history && Array.isArray(data.history) && data.history.length > 0) {
+            data.history.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            data.history.forEach((item, index) => {
+                const historyItemDiv = document.createElement('div');
+                historyItemDiv.className = 'history-item flex items-start mb-4 relative';
+                if (index < data.history.length - 1) {
+                    historyItemDiv.classList.add('after:content-[""]', 'after:absolute', 'after:left-[11px]', 'after:top-6', 'after:bottom-[-20px]', 'after:w-0.5', 'after:bg-gray-300', 'after:z-0');
+                }
+
+                const iconSpan = document.createElement('span');
+                iconSpan.className = 'history-icon-circle w-6 h-6 rounded-full text-white flex justify-center items-center text-sm flex-shrink-0 z-10';
+
+                let iconClass = 'bg-gray-500';
+                let iconHTML = '<i class="fas fa-circle"></i>';
+
+                const lowerDescription = (item.description || '').toLowerCase();
+                if (lowerDescription.includes('departed') || lowerDescription.includes('transit')) {
+                    iconClass = 'bg-blue-500';
+                    iconHTML = '<i class="fas fa-truck"></i>';
+                } else if (lowerDescription.includes('delivered')) {
+                    iconClass = 'bg-green-500';
+                    iconHTML = '<i class="fas fa-check"></i>';
+                } else if (lowerDescription.includes('held') || lowerDescription.includes('officer') || lowerDescription.includes('exception')) {
+                    iconClass = 'bg-red-500';
+                    iconHTML = '<i class="fas fa-exclamation-triangle"></i>';
+                } else if (index === 0) {
+                    iconClass = 'bg-green-500';
+                    iconHTML = '<i class="fas fa-map-marker-alt"></i>';
+                }
+
+                iconSpan.classList.add(iconClass);
+                iconSpan.innerHTML = iconHTML;
+
+                const contentDiv = document.createElement('div');
+                contentDiv.className = 'history-content ml-3 flex-grow';
+
+                const timeP = document.createElement('p');
+                timeP.className = 'history-time text-xs text-gray-500 mb-0.5';
+                timeP.textContent = formatHistoryDateTimeScreenshot(item.timestamp || new Date().toISOString());
+
+                const locationP = document.createElement('p');
+                locationP.className = 'history-location font-semibold text-sm text-black mb-1';
+                locationP.textContent = item.description || 'N/A';
+
+                const descriptionP = document.createElement('p');
+                descriptionP.className = 'history-description-detailed text-sm text-gray-700';
+                descriptionP.textContent = item.location || 'N/A';
+
+                contentDiv.appendChild(timeP);
+                contentDiv.appendChild(locationP);
+                contentDiv.appendChild(descriptionP);
+
+                historyItemDiv.appendChild(iconSpan);
+                historyItemDiv.appendChild(contentDiv);
+
+                historyContainer.appendChild(historyItemDiv);
+            });
+        } else {
+            historyContainer.innerHTML = '<p class="text-center text-gray-500">No history events available yet.</p>';
+        }
+    }
+}
         function formatHistoryDateTimeScreenshot(isoString) {
             try {
                 const dateObj = new Date(isoString);

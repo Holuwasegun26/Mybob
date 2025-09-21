@@ -14,9 +14,8 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
+     <style>
         body {
             font-family: 'Poppins', sans-serif;
         }
@@ -29,16 +28,11 @@
         .blinking {
             animation: blink 1s linear infinite alternate;
         }
-        .whitespace-pre-wrap {
-        white-space: pre-wrap;
-        word-wrap: break-word;
-        overflow-wrap: break-word;
-    }
     </style>
 </head>
 <body class="bg-[#f0f2f5] p-2 md:p-5 flex justify-center items-start min-h-screen text-[#333]">
-<div class="main-container w-full flex flex-col gap-4 md:gap-5 bg-white bg-opacity-90 rounded-lg p-4 md:p-6 shadow-xl">
-<div class="tracking-header w-full flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 border-b border-gray-200 mb-4">
+    <div class="main-container w-full max-w-4xl flex flex-col gap-4 md:gap-5 bg-white bg-opacity-90 rounded-lg p-4 md:p-6 shadow-xl">
+        <div class="tracking-header flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 border-b border-gray-200 mb-4">
             <h1 id="trackingDetailsHeader" class="text-xl md:text-2xl font-semibold m-0">Tracking Details: 7770947003939</h1>
             <div class="right-section flex items-center justify-between w-full md:w-auto md:justify-end gap-3 md:gap-4">
                 <a href="index.html" class="track-again-btn bg-[#9f15c9] text-white py-2 px-3 rounded-md text-xs md:text-sm font-semibold transition-colors duration-300 hover:bg-[#8511a8]">Track Parcel Again</a>
@@ -203,27 +197,19 @@
                 statusDot.classList.remove('blinking');
             }
 
-              const expectedDeliveryDateElem = document.getElementById('expectedDeliveryDate');
-            const expectedDeliveryTimeElem = document.getElementById('expectedDeliveryTime');
+            const expectedDeliveryDateElem = document.getElementById('expectedDeliveryDate');
+            const expectedDeliveryTimeElem = document.getElementById('expectedDeliveryTime');
 
-    if (data.expectedDelivery) {
-        const deliveryDate = new Date(data.expectedDelivery);
-        if (expectedDeliveryDateElem) {
-            expectedDeliveryDateElem.textContent = deliveryDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-        }
-        const utcHours = String(deliveryDate.getUTCHours()).padStart(2, '0');
-        const utcMinutes = String(deliveryDate.getUTCMinutes()).padStart(2, '0');
-        if (expectedDeliveryTimeElem) {
-            expectedDeliveryTimeElem.textContent = `${utcHours}:${utcMinutes}`;
-        }
-    } else {
-        if (expectedDeliveryDateElem) {
-            expectedDeliveryDateElem.textContent = 'N/A';
-        }
-        if (expectedDeliveryTimeElem) {
-            expectedDeliveryTimeElem.textContent = 'N/A';
-        }
-    }
+            if (data.expectedDelivery) {
+                const deliveryDate = new Date(data.expectedDelivery);
+                expectedDeliveryDateElem.textContent = deliveryDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+                const utcHours = String(deliveryDate.getUTCHours()).padStart(2, '0');
+                const utcMinutes = String(deliveryDate.getUTCMinutes()).padStart(2, '0');
+                expectedDeliveryTimeElem.textContent = `${utcHours}:${utcMinutes}`;
+            } else {
+                expectedDeliveryDateElem.textContent = 'N/A';
+                expectedDeliveryTimeElem.textContent = 'N/A';
+            }
 
             document.getElementById('senderName').textContent = data.senderName || 'N/A';
             document.getElementById('originLocation').textContent = data.origin || 'N/A';

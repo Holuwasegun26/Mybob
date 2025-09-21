@@ -198,19 +198,27 @@
                 statusDot.classList.remove('blinking');
             }
 
-            const expectedDeliveryDateElem = document.getElementById('expectedDeliveryDate');
-            const expectedDeliveryTimeElem = document.getElementById('expectedDeliveryTime');
+              const expectedDeliveryDateElem = document.getElementById('expectedDeliveryDate');
+            const expectedDeliveryTimeElem = document.getElementById('expectedDeliveryTime');
 
-            if (data.expectedDelivery) {
-                const deliveryDate = new Date(data.expectedDelivery);
-                expectedDeliveryDateElem.textContent = deliveryDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-                const utcHours = String(deliveryDate.getUTCHours()).padStart(2, '0');
-                const utcMinutes = String(deliveryDate.getUTCMinutes()).padStart(2, '0');
-                expectedDeliveryTimeElem.textContent = `${utcHours}:${utcMinutes}`;
-            } else {
-                expectedDeliveryDateElem.textContent = 'N/A';
-                expectedDeliveryTimeElem.textContent = 'N/A';
-            }
+    if (data.expectedDelivery) {
+        const deliveryDate = new Date(data.expectedDelivery);
+        if (expectedDeliveryDateElem) {
+            expectedDeliveryDateElem.textContent = deliveryDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        }
+        const utcHours = String(deliveryDate.getUTCHours()).padStart(2, '0');
+        const utcMinutes = String(deliveryDate.getUTCMinutes()).padStart(2, '0');
+        if (expectedDeliveryTimeElem) {
+            expectedDeliveryTimeElem.textContent = `${utcHours}:${utcMinutes}`;
+        }
+    } else {
+        if (expectedDeliveryDateElem) {
+            expectedDeliveryDateElem.textContent = 'N/A';
+        }
+        if (expectedDeliveryTimeElem) {
+            expectedDeliveryTimeElem.textContent = 'N/A';
+        }
+    }
 
             document.getElementById('senderName').textContent = data.senderName || 'N/A';
             document.getElementById('originLocation').textContent = data.origin || 'N/A';
